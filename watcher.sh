@@ -8,7 +8,7 @@ export RUST_LOG=debug,test=debug;
 function rebuild_invoicer {
   echo "\n\n\t\t<---------------------->\nBuilding and running the full test\n"
   # cargo run && build_docs
-  cargo test --package test_suite test_hello_world
+  cargo test --package test_suite test_apply_patch -- --nocapture
   echo "\n"
 }
 

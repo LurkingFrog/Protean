@@ -10,6 +10,13 @@ build = "build.rs"
 [dependencies]
 strain = { path = "../strain" }
 
+# General logging
+log = "0.4.11"
+env_logger = "0.7.1"
+
+# Serialization
+serde = {version = "1.0.114", features = ["derive"]}
+
 [build-dependencies]
 toolchain_find = "0.1.4"
 

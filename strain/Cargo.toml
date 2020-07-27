@@ -8,7 +8,7 @@ categories = ["development-tools::procedural-macro-helpers"]
 keywords = ["macro", "struct", "diff", "history"]
 
 [features]
-default = ["serde", "strain_derive"]
+default = ["strain_derive"]
 
 [dependencies]
 # General logging
@@ -20,7 +20,7 @@ anyhow = "1.0.32"
 thiserror = "1.0.20"
 
 # Serialization
-serde = {version = "1.0.114", optional = true}
+serde = {version = "1.0.114", features = ["derive"]}
 
 # Derivations
 strain_derive = { path = "../strain_derive", optional = true }
