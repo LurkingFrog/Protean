@@ -1,0 +1,30 @@
+[package]
+name = "strain_derive"
+version = "0.1.0"
+authors = ["Dave Fogelson <dfogelson@theprocessfoundry.com>"]
+edition = "2018"
+description = "A derive to enable viewing the mutation history of a struct"
+
+
+[lib]
+name = "strain_derive"
+proc-macro = true
+
+
+
+[dependencies]
+# General logging
+log = "0.4.11"
+env_logger = "0.7.1"
+
+# Error creation
+anyhow = "1.0.32"
+thiserror = "1.0.20"
+
+proc-macro2 = "1.0.19"
+syn = { version = "1.0.36", features = ["extra-traits"] }
+quote = "1.0.7"
+
+
+[dev-dependencies]
+syn = { version = "1.0.36", features = ["extra-traits"] }

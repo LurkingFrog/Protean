@@ -1,0 +1,7 @@
+[workspace]
+members = [
+  "strain",
+  "strain_derive",
+  # "strain_examples/diesel_updates",
+  "test_suite"
+]

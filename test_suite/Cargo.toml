@@ -1,0 +1,24 @@
+[package]
+name = "test_suite"
+version = "0.0.0"
+authors = ["Dave Fogelson <dfogelson@theprocessfoundry.com>"]
+edition = "2018"
+description = "Testing for Strain"
+publish = false
+build = "build.rs"
+
+[dependencies]
+strain = { path = "../strain" }
+
+[build-dependencies]
+toolchain_find = "0.1.4"
+
+[dev-dependencies]
+rand = "0.7.3"
+# fnv = "1.0"
+# macrotest = "=1.0.0"
+rustversion = "1.0.3"
+# serde = { path = "../serde", features = ["rc", "derive"] }
+# serde_derive = { path = "../serde_derive", features = ["deserialize_in_place"] }
+# serde_test = { path = "../serde_test" }
+# trybuild = "1.0"
