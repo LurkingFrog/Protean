@@ -3,12 +3,12 @@ name = "test_suite"
 version = "0.0.0"
 authors = ["Dave Fogelson <dfogelson@theprocessfoundry.com>"]
 edition = "2018"
-description = "Testing for Strain"
+description = "Testing for Protean"
 publish = false
 build = "build.rs"
 
 [dependencies]
-strain = { path = "../strain" }
+protean = { path = "../protean" }
 
 # General logging
 log = "0.4.11"

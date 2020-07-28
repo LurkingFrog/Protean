@@ -1,5 +1,5 @@
 [package]
-name = "strain_derive"
+name = "protean_derive"
 version = "0.1.0"
 authors = ["Dave Fogelson <dfogelson@theprocessfoundry.com>"]
 edition = "2018"
@@ -7,7 +7,7 @@ description = "A derive to enable viewing the mutation history of a struct"
 
 
 [lib]
-name = "strain_derive"
+name = "protean_derive"
 proc-macro = true
 
 

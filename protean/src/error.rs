@@ -1,4 +1,4 @@
-//! All the errors that can be returned from Strain
+//! All the errors that can be returned from Protean
 
 use thiserror::Error;
 
@@ -7,7 +7,7 @@ use thiserror::Error;
   feature = "serde_support",
   derive(serde::Serialize, serde::Deserialize)
 )]
-pub enum StrainError {
+pub enum ProteanError {
   #[error("There was an error attempting to convert from one type to another")]
   ConversionError,
 }

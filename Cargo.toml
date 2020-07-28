@@ -1,7 +1,7 @@
 [workspace]
 members = [
-  "strain",
-  "strain_derive",
-  # "strain_examples/diesel_updates",
+  "protean",
+  "protean_derive",
+  # "protean_examples/diesel_updates",
   "test_suite"
 ]

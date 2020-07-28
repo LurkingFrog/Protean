@@ -12,7 +12,7 @@ use std::fmt::Debug;
 use std::rc::Rc;
 
 pub mod error;
-pub use error::StrainError;
+pub use error::ProteanError;
 
 // macro_rules! create_patch {
 //   // Doing the patch macro here
@@ -85,7 +85,7 @@ pub trait Patchwork<'a, SubClass = Self>: Debug + Clone + Serialize + Deserializ
   /// Compare two structs of the same type and return a Patch needed to convert the left to the right
   fn diff(&self, struct2: &SubClass) -> Result<Patch>;
   // fn get_value(&self, key: Option<&str>) -> SubClass;
-  // fn set_value(&self, key: Option<&str>, value: String) -> Result<StrainError>;
+  // fn set_value(&self, key: Option<&str>, value: String) -> Result<ProteanError>;
 }
 
 /// A container for managing a set of changes to a given implementation of Patchwork
@@ -146,7 +146,7 @@ impl Patch {
   }
 }
 
-//****************************************   Primitive Implementations ********************************/
+//****************************************   Primitive Type Implementations ********************************/
 /// Implement all the primitives with a common set of code.
 ///
 /// These are types of values that simple equality works for. String is included, as we are looking at it
@@ -191,8 +191,16 @@ primitive_patchwork! {f32}
 primitive_patchwork! {f64}
 
 primitive_patchwork! {char}
-
 primitive_patchwork! {String}
+
+// TODO: &str
+
+//****************************************   Complex Type Implementations ********************************/
+// Complex primitives
+// TODO: &T
+// TODO: Option
+// TODO: Vec
+// TODO: HashMap
 
 // Doesn't work because there is no clone() for str
 // primitive_patchwork! {str}

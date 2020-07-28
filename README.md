@@ -1,4 +1,4 @@
-# Strain
+# Protean
 
 A set of macros to give the ability to track and produce mutations on a struct.
 

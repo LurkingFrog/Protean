@@ -31,8 +31,9 @@ function init {
 
 function build_docs {
   echo "\nBuilding the documentation"
-  cargo doc --no-deps
-  # && cp -R target/doc/* ~/Foundry/lurkingfrog.github.io/the_process_foundry/docs
+  cargo doc --no-deps \
+  && mkdir -p  ~/Foundry/lurkingfrog.github.io/protean/docs \
+  && cp -R target/doc/* ~/Foundry/lurkingfrog.github.io/protean/docs
 }
 
 # Remove all the docker containers before exiting
@@ -56,8 +57,8 @@ while true; do
   EVENT=$(inotifywait -r -e modify \
     ./watcher.sh \
     ./Cargo.toml \
-    ./strain \
-    ./strain_derive \
+    ./protean \
+    ./protean_derive \
     ./test_suite \
   )
   FILE_PATH=${EVENT/${modify}/}

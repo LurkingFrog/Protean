@@ -1,11 +1,11 @@
-//! All the tests for Strain and its derive functions
+//! All the tests for Protean and its derive functions
 //!
 //! This will get split up later, but for now this will define the the project
 
 use std::sync::Once;
 static LOGGING: Once = Once::new();
 
-use strain::{patch, Patchwork, StrainError};
+use protean::{patch, Patchwork, ProteanError};
 
 /// Set up that should be run for each ea
 fn init_test() {
@@ -32,7 +32,7 @@ mod tools {
   use rand::distributions::Alphanumeric;
   use rand::Rng;
   use serde::{Deserialize, Serialize};
-  use strain::{Patch, Patchwork};
+  use protean::{Patch, Patchwork};
 
   /// A struct with all the data types that Patchwork should know how to handle
   #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -92,7 +92,7 @@ test!(
     log::debug!("The initial tester is:\n{:#?}", tester);
 
     assert_eq!(tester.integer, 0);
-    // let _patch = patch!(tester, (("integer", 1)));
+    let _patch = patch!(tester, (("integer", 1)));
     assert_eq!(tester.integer, 1);
 
     // // Create a new patch
@@ -111,13 +111,13 @@ test!(
     // When compared to itself, a should return an empty patch
     let patch = test1.diff(&test1);
     log::debug!("Self Test:\n{:#?}", patch);
+    assert!(patch.unwrap().is_empty(), true);
 
     let test2 = tools::Tester::random();
     log::debug!("Test2: {:#?}", test2);
 
     let patch = test1.diff(&test2);
     log::debug!("Test 2:\n{:#?}", patch);
-    // for each field, update a clone with a new random integer and test that patch
   }
 );
 
