@@ -3,10 +3,9 @@
 //! This will get split up later, but for now this will define the the project
 
 use std::sync::Once;
-
-use strain::{patch, Patch, Patchwork, StrainError};
-
 static LOGGING: Once = Once::new();
+
+use strain::{patch, Patchwork, StrainError};
 
 /// Set up that should be run for each ea
 fn init_test() {
@@ -14,7 +13,7 @@ fn init_test() {
 }
 
 macro_rules! test {
-  (fn $name:ident ( $($arg:ident:$typ:ty),*) $body:expr) => {
+  (fn $name:ident () $body:expr) => {
     #[test]
     fn $name() {
       fn type_name_of<T>(_: T) -> &'static str {
@@ -29,8 +28,11 @@ macro_rules! test {
 }
 
 mod tools {
+  use anyhow::Result;
+  use rand::distributions::Alphanumeric;
+  use rand::Rng;
   use serde::{Deserialize, Serialize};
-  use strain::Patchwork;
+  use strain::{Patch, Patchwork};
 
   /// A struct with all the data types that Patchwork should know how to handle
   #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,21 +52,34 @@ mod tools {
     }
   }
 
-  // TODO: Convert this to a macro
-  impl<'a> Patchwork<'a> for Tester {}
-}
-
-test!(
-  fn hello_world() {
-    println!("Testing works");
+  impl Tester {
+    pub fn random() -> Tester {
+      let mut rng = rand::thread_rng();
+      Tester {
+        integer: rng.gen(),
+        float: rng.gen(),
+        string: {
+          std::iter::repeat(())
+            .map(|()| rng.sample(Alphanumeric))
+            .take(15)
+            .collect()
+        },
+      }
+    }
   }
-);
 
-/// Tests
-/// - test getters
-/// - get value
-/// - set value
-/// - get diff
+  // TODO: Convert this to a macro
+  impl<'a> Patchwork<'a> for Tester {
+    fn diff(&self, struct2: &Tester) -> Result<Patch> {
+      let patch = self
+        .new_patch()
+        .merge("integer", self.integer.diff(&struct2.integer)?)?
+        .merge("float", self.float.diff(&struct2.float)?)?
+        .merge("string", self.string.diff(&struct2.string)?)?;
+      Ok(patch)
+    }
+  }
+}
 
 test!(
   fn test_getters() {}
@@ -72,14 +87,12 @@ test!(
 
 test!(
   fn test_apply_patch() {
-    init_test();
-
     // Create an default tester
-    let mut tester = tools::Tester::default();
+    let tester = tools::Tester::default();
     log::debug!("The initial tester is:\n{:#?}", tester);
 
     assert_eq!(tester.integer, 0);
-    let patch = patch!(tester, (("integer", 1)));
+    // let _patch = patch!(tester, (("integer", 1)));
     assert_eq!(tester.integer, 1);
 
     // // Create a new patch
@@ -91,9 +104,33 @@ test!(
 
 test!(
   fn test_diff() {
-    init_test();
     // Fill a tester with random data
+    let test1 = tools::Tester::random();
+    log::debug!("Test1: {:#?}", test1);
 
-    // for each field, update a clone with a new random number and test that patch
+    // When compared to itself, a should return an empty patch
+    let patch = test1.diff(&test1);
+    log::debug!("Self Test:\n{:#?}", patch);
+
+    let test2 = tools::Tester::random();
+    log::debug!("Test2: {:#?}", test2);
+
+    let patch = test1.diff(&test2);
+    log::debug!("Test 2:\n{:#?}", patch);
+    // for each field, update a clone with a new random integer and test that patch
+  }
+);
+
+test!(
+  fn test_primitives() {
+    // Just so the Tester doesn't have to enumerate every combination, we want to validate all
+    // primitives that have been implemented here
+    // Docstring tests?
+  }
+);
+
+test!(
+  fn test_vec() {
+    // Vectors and arrays are going to have order changes and we want to make sure they are handled properly
   }
 );

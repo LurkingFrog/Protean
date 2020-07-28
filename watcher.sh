@@ -5,10 +5,11 @@ export RUST_BACKTRACE=0;
 export RUST_LOG=debug,test=debug;
 # export RUSTFLAGS="-Z macro-backtrace -Z debug-macros"
 
-function rebuild_invoicer {
+function rebuild_project {
   echo "\n\n\t\t<---------------------->\nBuilding and running the full test\n"
   # cargo run && build_docs
-  cargo test --package test_suite test_apply_patch -- --nocapture
+  cargo test --package test_suite test_diff -- --nocapture \
+  && build_docs
   echo "\n"
 }
 
@@ -30,7 +31,7 @@ function init {
 
 function build_docs {
   echo "\nBuilding the documentation"
-  cargo doc --no-deps \
+  cargo doc --no-deps
   # && cp -R target/doc/* ~/Foundry/lurkingfrog.github.io/the_process_foundry/docs
 }
 
@@ -47,7 +48,7 @@ space=" "
 modify="${space}MODIFY${space}"
 
 # And run it the first time before the loop so we don't have to wait for the update
-rebuild_invoicer
+rebuild_project
 
 while true; do
   command -v inotifywait > /dev/null 2>&1 || $(echo -e "InotifyWait not installed" && exit 1)
@@ -71,10 +72,10 @@ while true; do
 
 
   elif [[ $FILE_PATH =~ "./Cargo.toml$" ]]; then
-    rebuild_invoicer
+    rebuild_project
 
   elif [[ $FILE_PATH =~ "^..?/.+.rs$" ]]; then
-    rebuild_invoicer
+    rebuild_project
 
   else
     echo -en "No Match on '${FILE_PATH}'': Continuing"

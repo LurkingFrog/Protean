@@ -15,7 +15,7 @@ default = ["strain_derive"]
 log = "0.4.11"
 env_logger = "0.7.1"
 
-# Error creation
+# Error creation/handling
 anyhow = "1.0.32"
 thiserror = "1.0.20"
 
