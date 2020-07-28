@@ -2,7 +2,31 @@
 //!
 //! This will get split up later, but for now this will define the the project
 
-use strain::{Patch, Patchwork, StrainError};
+use std::sync::Once;
+
+use strain::{patch, Patch, Patchwork, StrainError};
+
+static LOGGING: Once = Once::new();
+
+/// Set up that should be run for each ea
+fn init_test() {
+  LOGGING.call_once(|| env_logger::init())
+}
+
+macro_rules! test {
+  (fn $name:ident ( $($arg:ident:$typ:ty),*) $body:expr) => {
+    #[test]
+    fn $name() {
+      fn type_name_of<T>(_: T) -> &'static str {
+        std::any::type_name::<T>()
+      }
+      init_test();
+      log::debug!("Starting to run test: {}", type_name_of($name));
+
+      $body
+    }
+  };
+}
 
 mod tools {
   use serde::{Deserialize, Serialize};
@@ -30,23 +54,46 @@ mod tools {
   impl<'a> Patchwork<'a> for Tester {}
 }
 
-#[test]
-fn test_hello_world() {
-  println!("Testing works");
-}
+test!(
+  fn hello_world() {
+    println!("Testing works");
+  }
+);
 
-#[test]
-fn test_apply_patch() {
-  // Ugly to put the env logger init here, but there doesn't seem to be much other option
-  env_logger::init();
-  let mut patch = tools::Tester::new_patch();
-  let _ = patch.add("integer".to_string(), "1".to_string());
-  log::debug!("Testing the Patch:\n{}", patch)
-}
+/// Tests
+/// - test getters
+/// - get value
+/// - set value
+/// - get diff
 
-#[test]
-fn test_diff() {
-  // Fill a tester with random data
+test!(
+  fn test_getters() {}
+);
 
-  // for each field, update a clone with a new random number and test that patch
-}
+test!(
+  fn test_apply_patch() {
+    init_test();
+
+    // Create an default tester
+    let mut tester = tools::Tester::default();
+    log::debug!("The initial tester is:\n{:#?}", tester);
+
+    assert_eq!(tester.integer, 0);
+    let patch = patch!(tester, (("integer", 1)));
+    assert_eq!(tester.integer, 1);
+
+    // // Create a new patch
+    // let mut patch = tools::Tester::new_patch();
+    // let _ = patch.add("integer".to_string(), "1".to_string());
+    // log::debug!("Testing the Patch:\n{}", patch);
+  }
+);
+
+test!(
+  fn test_diff() {
+    init_test();
+    // Fill a tester with random data
+
+    // for each field, update a clone with a new random number and test that patch
+  }
+);
