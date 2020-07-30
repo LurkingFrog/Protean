@@ -8,6 +8,6 @@ use thiserror::Error;
   derive(serde::Serialize, serde::Deserialize)
 )]
 pub enum ProteanError {
-  #[error("There was an error attempting to convert from one type to another")]
-  ConversionError,
+  #[error("The given patch doesn't match the type of struct it is being applied to")]
+  InvalidPatchType,
 }

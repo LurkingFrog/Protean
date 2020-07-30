@@ -1,6 +1,21 @@
 //! All the tests for Protean and its derive functions
 //!
 //! This will get split up later, but for now this will define the the project
+//!
+//! # Milestone 1 (What is Done)
+//!
+//! Patchwork only!!
+//! - Document Architecture (Book?)
+//! - Document use cases
+//!   - Minimal option messages in The Process Foundry (premature network optimization)
+//!   - Partial update subscription (Similar to Apollo GraphQL, but for Postgres)
+//!
+//! After Milestone reached
+//! - Code review from ADHD_Devs
+//! - Include comments/PRs
+//! - First, have finished first draft of personal landing page
+//! - Ask for Code review on Rust
+//! - Publish Crate
 
 use std::sync::Once;
 static LOGGING: Once = Once::new();
@@ -29,10 +44,10 @@ macro_rules! test {
 
 mod tools {
   use anyhow::Result;
+  use protean::{Patch, Patchwork};
   use rand::distributions::Alphanumeric;
   use rand::Rng;
   use serde::{Deserialize, Serialize};
-  use protean::{Patch, Patchwork};
 
   /// A struct with all the data types that Patchwork should know how to handle
   #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -40,6 +55,7 @@ mod tools {
     pub integer: i32,
     pub float: f32,
     pub string: String,
+    pub nested: Nested,
   }
 
   impl Default for Tester {
@@ -48,6 +64,7 @@ mod tools {
         integer: 0,
         float: 0.0,
         string: "".to_string(),
+        nested: Default::default(),
       }
     }
   }
@@ -64,6 +81,7 @@ mod tools {
             .take(15)
             .collect()
         },
+        nested: Nested::random(),
       }
     }
   }
@@ -75,15 +93,40 @@ mod tools {
         .new_patch()
         .merge("integer", self.integer.diff(&struct2.integer)?)?
         .merge("float", self.float.diff(&struct2.float)?)?
-        .merge("string", self.string.diff(&struct2.string)?)?;
+        .merge("string", self.string.diff(&struct2.string)?)?
+        .merge("nested", self.nested.diff(&struct2.nested)?)?;
+      Ok(patch)
+    }
+  }
+
+  /// A second struct to be nested inside the Tester
+  #[derive(Debug, Clone, Serialize, Deserialize)]
+  pub struct Nested {
+    level_2: u8,
+  }
+
+  impl Nested {
+    pub fn random() -> Nested {
+      let mut rng = rand::thread_rng();
+      Nested { level_2: rng.gen() }
+    }
+  }
+
+  impl Default for Nested {
+    fn default() -> Nested {
+      Nested { level_2: 0 }
+    }
+  }
+
+  impl<'a> Patchwork<'a> for Nested {
+    fn diff(&self, nested2: &Nested) -> Result<Patch> {
+      let patch = self
+        .new_patch()
+        .merge("level_2", self.level_2.diff(&nested2.level_2)?)?;
       Ok(patch)
     }
   }
 }
-
-test!(
-  fn test_getters() {}
-);
 
 test!(
   fn test_apply_patch() {
@@ -121,16 +164,30 @@ test!(
   }
 );
 
+// Make sure we can apply a patch to a given struct
 test!(
-  fn test_primitives() {
-    // Just so the Tester doesn't have to enumerate every combination, we want to validate all
-    // primitives that have been implemented here
-    // Docstring tests?
+  fn test_apply() {
+    // Create a default tester
+    let base = tools::Tester::default();
+
+    // Fill a tester with random data
+    let random = tools::Tester::random();
+    log::debug!("Test1: {:#?}", random);
+
+    // Get an error from trying to apply a patch from the wrong type
+
+    // match
   }
 );
 
 test!(
   fn test_vec() {
+    // Vectors and arrays are going to have order changes and we want to make sure they are handled properly
+  }
+);
+
+test!(
+  fn test_hash() {
     // Vectors and arrays are going to have order changes and we want to make sure they are handled properly
   }
 );

@@ -1,0 +1,21 @@
+version: "3.8"
+services:
+  headless:
+    image: zenika/alpine-chrome
+    depends_on:
+      - postgres
+    volumes:
+      - ~/Foundry/Protean/protean_examples/diesel_updates/pdfs:/pdfs
+
+  postgres:
+    image: postgres
+    ports:
+      - 15432:5432
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - "pg_data:/var/lib/postgresql/data"
+
+volumes:
+  pg_data:
