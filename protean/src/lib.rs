@@ -30,7 +30,7 @@ macro_rules! patch {
     let mut patch = $a.new_patch();
     $(
       let (key, value) = $update;
-      patch.add(key.to_string(), serde_json::to_string(&value).unwrap());
+      patch.add(&key, serde_json::to_value(&value).unwrap());
     )*;
     patch
   }};
@@ -69,11 +69,14 @@ pub trait Patchwork<'a, SubClass = Self>: Debug + Clone + Serialize + Deserializ
     };
 
     Patch {
+      // THINK: Unique Uuid hashed from type name and full version?
       patch_type: "STRUCT NAME HERE".to_string(),
+      key: None,
       validator: Rc::new(validator),
       value_map: HashMap::new(),
     }
   }
+
   fn apply(&mut self, patch: &Patch) -> Result<()> {
     log::debug!("Applying patch:\n{}", patch);
     // for key in patch.value_map.
@@ -86,6 +89,35 @@ pub trait Patchwork<'a, SubClass = Self>: Debug + Clone + Serialize + Deserializ
   fn diff(&self, struct2: &SubClass) -> Result<Patch>;
   // fn get_value(&self, key: Option<&str>) -> SubClass;
   // fn set_value(&self, key: Option<&str>, value: String) -> Result<ProteanError>;
+
+  /// Convert to a patch format
+  ///
+  /// This can be made into a static function once the macro is done. Faster to brute force it now.
+  fn to_patch(&self) -> Result<Patch> {
+    unimplemented!(
+      "'Patchwork::to_patch' needs to be implemented manually until proc_macro is ready"
+    )
+  }
+
+  /// Create an object from a patch object
+  ///
+  /// This can be made into a static function once the macro is done. Faster to brute force it now.
+  /// I'm assuming there is no default, so implementation will throw an error if a required field
+  /// is not included in the patch
+  fn from_patch(_prefix: Option<String>, _patch: &Patch) -> Result<SubClass> {
+    unimplemented!(
+      "'Patchwork::to_patch' needs to be implemented manually until proc_macro is ready"
+    )
+  }
+
+  /// Generate a key hash and store it in self.key
+  ///
+  /// Another one for the macro factory
+  fn generate_key(&self) -> Result<u64> {
+    unimplemented!(
+      "'Patchwork::generate_key' needs to be implemented manually until proc_macro is ready"
+    )
+  }
 }
 
 /// A container for managing a set of changes to a given implementation of Patchwork
@@ -94,14 +126,19 @@ pub struct Patch {
   /// The name of the struct that created the patch
   patch_type: String,
 
+  /// An optional unique key for the item hashed
+  ///
+  /// This should be generated using Hash on the base object
+  key: Option<u64>,
+
   /// A validating closure that ensures that only
-  validator: Rc<dyn Fn(String, String) -> Result<()>>,
+  validator: Rc<dyn Fn(String, serde_json::Value) -> Result<()>>,
 
   /// The map is so we can gather a bulk update.
   ///
   /// The key is the location of the value within the object encoded in dot notation.
   /// THINK: diff of HashMap where the key is not a primitive?
-  value_map: HashMap<String, String>,
+  value_map: HashMap<String, serde_json::Value>,
 }
 
 impl std::fmt::Display for Patch {
@@ -118,10 +155,10 @@ impl std::fmt::Debug for Patch {
 
 impl Patch {
   /// Add a new record to the patch
-  pub fn add(&mut self, key: String, value: String) -> Result<Patch> {
+  pub fn add(&mut self, key: &String, value: &serde_json::Value) -> Result<Patch> {
     let validator = &self.validator;
     validator(key.clone(), value.clone())?;
-    self.value_map.insert(key, value);
+    self.value_map.insert(key.clone(), value.clone());
     Ok(self.clone())
   }
 
@@ -136,13 +173,50 @@ impl Patch {
           "&self" => prefix.to_string(),
           _ => format!("{}.{}", prefix, k),
         };
-        acc?.add(key, v.clone())
+        acc?.add(&key, &v)
       })
   }
 
   /// Checks to see if the patch has any values stored in it
   pub fn is_empty(&self) -> bool {
     self.value_map.is_empty()
+  }
+
+  /// Getter for values in the patch
+  pub fn get(&self, prefix: Option<String>, key: &str) -> Option<&serde_json::Value> {
+    let mut path = prefix.map_or("".to_string(), |x| format!("{}.", x));
+    path.push_str(key);
+    self.value_map.get(&path)
+  }
+
+  /// Getter for the key
+  pub fn get_key(&self) -> Result<u64> {
+    match self.key {
+      Some(key) => Ok(key.clone()),
+      None => Err(ProteanError::NoKeySet).context("Ran get_key but got None"),
+    }
+  }
+
+  pub fn set_key(&self, key_hash: u64) -> Result<Patch> {
+    Ok(Patch {
+      key: Some(key_hash),
+      ..self.clone()
+    })
+  }
+
+  // --------  Static helpers
+
+  /// Convert a patch to its original type
+  ///
+  /// This assumes there is enough data in the patch for all the non-optional values. Essentially,
+  /// this is a serialized form with all the unset optional fields removed.
+  /// THINK:
+  /// - Add coerce option which ignores the type?
+  pub fn from_patch<'a, T>(prefix: Option<String>, patch: &Patch) -> Result<T>
+  where
+    T: Patchwork<'a>,
+  {
+    T::from_patch(prefix, &patch).context("Could not create a Test Object from patch")
   }
 }
 
@@ -162,9 +236,17 @@ macro_rules! primitive_patchwork {
         let mut patch = self.new_patch();
         log::debug!("self: {:#?}, struct2: {:#?}", &self, struct2);
         if self != struct2 {
-          patch.add("&self".to_string(), serde_json::to_string(struct2)?)?;
+          patch.add(&"&self".to_string(), &serde_json::to_value(struct2)?)?;
         }
         Ok(patch)
+      }
+
+      fn to_patch(&self) -> Result<Patch> {
+        Ok(
+          self
+            .new_patch()
+            .add(&"&self".to_string(), &serde_json::to_value(self)?)?,
+        )
       }
     }
   };

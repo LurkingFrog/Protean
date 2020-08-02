@@ -1,5 +1,10 @@
 -- Your SQL goes here
 
+CREATE TABLE Tests (
+  guid VARCHAR PRIMARY KEY,
+  value VARCHAR NOT NULL
+);
+
 CREATE TABLE Users (
   guid VARCHAR PRIMARY KEY,
   salutation VARCHAR,
@@ -13,7 +18,7 @@ CREATE TABLE Users (
 );
 
 
-CREATE TABLE Patient (
+CREATE TABLE Patients (
   guid VARCHAR PRIMARY KEY,
   species VARCHAR NOT NULL
 );
@@ -38,7 +43,6 @@ CREATE TABLE Organizations (
   children TEXT[] NOT NULL,
   payment_terms VARCHAR NOT NULL
 );
-
 
 CREATE TABLE Submissions (
   guid VARCHAR PRIMARY KEY,

@@ -209,6 +209,8 @@ while true; do
 
 
   elif [[ $FILE_PATH =~ ".?/Cargo.toml$" ]]; then
+    # Give it time, since VSCode conflicts and wants to do the same
+    sleep 5
     rebuild_project
 
   elif [[ $FILE_PATH =~ "^.?/.+.rs$" ]]; then

@@ -10,4 +10,7 @@ use thiserror::Error;
 pub enum ProteanError {
   #[error("The given patch doesn't match the type of struct it is being applied to")]
   InvalidPatchType,
+
+  #[error("The patch did not set a key")]
+  NoKeySet,
 }

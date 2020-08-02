@@ -34,7 +34,7 @@ table! {
 }
 
 table! {
-    patient (guid) {
+    patients (guid) {
         guid -> Varchar,
         species -> Varchar,
     }
@@ -89,6 +89,13 @@ table! {
 }
 
 table! {
+    tests (guid) {
+        guid -> Varchar,
+        value -> Varchar,
+    }
+}
+
+table! {
     users (guid) {
         guid -> Varchar,
         salutation -> Nullable<Varchar>,
@@ -111,10 +118,11 @@ joinable!(submissionlineitem -> submissions (submission));
 allow_tables_to_appear_in_same_query!(
     invoices,
     organizations,
-    patient,
+    patients,
     paymentappliedto,
     payments,
     submissionlineitem,
     submissions,
+    tests,
     users,
 );

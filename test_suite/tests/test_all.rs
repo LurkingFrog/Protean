@@ -97,6 +97,10 @@ mod tools {
         .merge("nested", self.nested.diff(&struct2.nested)?)?;
       Ok(patch)
     }
+
+    fn to_patch(&self) -> Result<Patch> {
+      unimplemented!("'UnitTest Tester::to_patch' still needs to be implemented")
+    }
   }
 
   /// A second struct to be nested inside the Tester
@@ -124,6 +128,10 @@ mod tools {
         .new_patch()
         .merge("level_2", self.level_2.diff(&nested2.level_2)?)?;
       Ok(patch)
+    }
+
+    fn to_patch(&self) -> Result<Patch> {
+      unimplemented!("'UnitTest Nested::to_patch' still needs to be implemented")
     }
   }
 }

@@ -8,6 +8,11 @@ description = "An example using protean with diesel"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# Patchwork/Historic/Replicant
+protean = { path="../../protean/" }
+# protean_derive = { path="../../protean_derive/" }
+
+
 # General logging
 log = "0.4.11"
 env_logger = "0.7.1"
@@ -17,7 +22,18 @@ anyhow = "1.0.32"
 thiserror = "1.0.20"
 
 # Database ORM
-diesel = { version = "1.4.4", features = ["postgres"] }
+diesel = { version = "1.4.5", features = ["postgres"] }
 
 # Store values in the local environment
 dotenv = "0.15.0"
+
+# Handle money
+rust_decimal = "1.7.0"
+
+# Date/Time fields
+chrono = "0.4.13"
+
+# Serde Serialization
+serde = "1.0.114"
+serde_derive = "1.0.114"
+serde_json = "1.0.57"
