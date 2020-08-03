@@ -1,0 +1,36 @@
+[package]
+name = "replicant"
+version = "0.1.0"
+authors = ["Dave Fogelson <dfogelson@theprocessfoundry.com>"]
+edition = "2018"
+description = "A distributed caching engine"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Patchwork/Historic/Replicant
+protean = { path="../protean/" }
+# protean_derive = { path="../../protean_derive/" }
+
+
+# General logging
+log = "0.4.11"
+env_logger = "0.7.1"
+
+# Error creation
+anyhow = "1.0.32"
+thiserror = "1.0.20"
+
+# Serde Serialization
+serde = "1.0.114"
+serde_derive = "1.0.114"
+serde_json = "1.0.57"
+
+# Handle money
+rust_decimal = "1.7.0"
+
+# Date/Time fields
+chrono = "0.4.13"
+
+# String Guid generaters
+uuid = { version = "0.8.1", features = ["v4", "serde"] }

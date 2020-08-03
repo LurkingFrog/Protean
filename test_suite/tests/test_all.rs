@@ -48,23 +48,28 @@ mod tools {
   use rand::distributions::Alphanumeric;
   use rand::Rng;
   use serde::{Deserialize, Serialize};
+  use std::collections::HashMap;
 
   /// A struct with all the data types that Patchwork should know how to handle
   #[derive(Debug, Clone, Serialize, Deserialize)]
   pub struct Tester {
+    pub pk: uuid::Uuid,
     pub integer: i32,
     pub float: f32,
     pub string: String,
     pub nested: Nested,
+    pub unkeyed: Unkeyed,
   }
 
   impl Default for Tester {
     fn default() -> Tester {
       Tester {
+        pk: uuid::Uuid::new_v4(),
         integer: 0,
         float: 0.0,
         string: "".to_string(),
         nested: Default::default(),
+        unkeyed: Default::default(),
       }
     }
   }
@@ -73,6 +78,7 @@ mod tools {
     pub fn random() -> Tester {
       let mut rng = rand::thread_rng();
       Tester {
+        pk: uuid::Uuid::new_v4(),
         integer: rng.gen(),
         float: rng.gen(),
         string: {
@@ -82,6 +88,7 @@ mod tools {
             .collect()
         },
         nested: Nested::random(),
+        unkeyed: Unkeyed::random(),
       }
     }
   }
@@ -94,7 +101,8 @@ mod tools {
         .merge("integer", self.integer.diff(&struct2.integer)?)?
         .merge("float", self.float.diff(&struct2.float)?)?
         .merge("string", self.string.diff(&struct2.string)?)?
-        .merge("nested", self.nested.diff(&struct2.nested)?)?;
+        .merge("nested", self.nested.diff(&struct2.nested)?)?
+        .merge("unkeyed", self.unkeyed.diff(&struct2.unkeyed)?)?;
       Ok(patch)
     }
 
@@ -106,19 +114,26 @@ mod tools {
   /// A second struct to be nested inside the Tester
   #[derive(Debug, Clone, Serialize, Deserialize)]
   pub struct Nested {
+    pk: uuid::Uuid,
     level_2: u8,
   }
 
   impl Nested {
     pub fn random() -> Nested {
       let mut rng = rand::thread_rng();
-      Nested { level_2: rng.gen() }
+      Nested {
+        pk: uuid::Uuid::new_v4(),
+        level_2: rng.gen(),
+      }
     }
   }
 
   impl Default for Nested {
     fn default() -> Nested {
-      Nested { level_2: 0 }
+      Nested {
+        pk: uuid::Uuid::new_v4(),
+        level_2: 0,
+      }
     }
   }
 
@@ -132,6 +147,45 @@ mod tools {
 
     fn to_patch(&self) -> Result<Patch> {
       unimplemented!("'UnitTest Nested::to_patch' still needs to be implemented")
+    }
+  }
+
+  /// An unkeyed struct for testing some Replicant functionality
+  #[derive(Debug, Clone, Serialize, Deserialize)]
+  pub struct Unkeyed {
+    pk: uuid::Uuid,
+    something: f64,
+  }
+
+  impl Unkeyed {
+    pub fn random() -> Unkeyed {
+      let mut rng = rand::thread_rng();
+      Unkeyed {
+        pk: uuid::Uuid::new_v4(),
+        something: rng.gen(),
+      }
+    }
+  }
+
+  impl Default for Unkeyed {
+    fn default() -> Unkeyed {
+      Unkeyed {
+        pk: uuid::Uuid::new_v4(),
+        something: 0.0,
+      }
+    }
+  }
+
+  impl<'a> Patchwork<'a> for Unkeyed {
+    fn diff(&self, unkeyed2: &Unkeyed) -> Result<Patch> {
+      let patch = self
+        .new_patch()
+        .merge("something", self.something.diff(&unkeyed2.something)?)?;
+      Ok(patch)
+    }
+
+    fn to_patch(&self) -> Result<Patch> {
+      unimplemented!("'UnitTest Unkeyed::to_patch' still needs to be implemented")
     }
   }
 }
@@ -176,7 +230,7 @@ test!(
 test!(
   fn test_apply() {
     // Create a default tester
-    let base = tools::Tester::default();
+    let _base = tools::Tester::default();
 
     // Fill a tester with random data
     let random = tools::Tester::random();
@@ -197,5 +251,60 @@ test!(
 test!(
   fn test_hash() {
     // Vectors and arrays are going to have order changes and we want to make sure they are handled properly
+  }
+);
+
+test!(
+  fn test_replicant_full() {
+    // Make sure caches stay in sync based on subscriptions
+    use tools::*;
+
+    // Make some random seed data
+    let _tests: Vec<Tester> = [0..3].iter().map(|_| tools::Tester::random()).collect();
+
+    test_replicant_register();
+
+    // Create some empty caches
+    let _primary = replicant::Store::new();
+
+    // Register Nested
+    // Create a new root in
+
+    // Register Tester
+    // See that we create two nodes
+
+    // Upsert tests into the primary cache
+    // assert in primary
+    // assert not in either of the others
+
+    // Add subscription of primary from secondary
+    // See that all items sync over tos
+  }
+);
+
+test!(
+  fn test_replicant_register() {
+    // Cannot add an Unkeyed item as a root
+    // All Local keyed items create their own root
+  }
+);
+
+test!(
+  fn test_replicant_subscribe() {
+    // Replicant to graphql format?
+    // List subscribers
+  }
+);
+
+test!(
+  fn test_replicant_trigger() {
+    // Test patch update triggering sends to all subscribers
+    // Test patch update triggers all matching callbacks
+  }
+);
+
+test!(
+  fn test_replicant_ack() {
+    // Test all subcribers return and ack that it received a patch or an error
   }
 );

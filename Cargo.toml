@@ -2,6 +2,7 @@
 members = [
   "protean",
   "protean_derive",
-  "protean_examples/diesel_updates",
+  # "protean_examples/diesel_updates",
+  "replicant",
   "test_suite"
 ]

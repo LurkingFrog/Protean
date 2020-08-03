@@ -9,6 +9,7 @@ build = "build.rs"
 
 [dependencies]
 protean = { path = "../protean" }
+replicant = { path = "../replicant" }
 
 # General logging
 log = "0.4.11"
@@ -21,6 +22,10 @@ thiserror = "1.0.20"
 # Serialization
 serde = { version = "1.0.114", features = ["derive"] }
 serde_json = "1.0.57"
+
+# String Guid generaters
+uuid = { version = "0.8.1", features = ["v4", "serde"] }
+
 
 [build-dependencies]
 toolchain_find = "0.1.4"

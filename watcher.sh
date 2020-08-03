@@ -6,7 +6,8 @@ export RUST_LOG=debug,test=debug;
 # export RUSTFLAGS="-Z macro-backtrace -Z debug-macros"
 
 
-WORKDIR=~/Foundry/Protean/protean_examples/diesel_updates
+# WORKDIR=~/Foundry/Protean/protean_examples/diesel_updates
+WORKDIR=~/Foundry/Protean/
 
 # An easier to read variable for calling docker compose. We'll set this programmatically
 COMPOSE_FILE=$WORKDIR/docker/fhl.docker-compose.yml
@@ -112,9 +113,9 @@ function reset_db {
 function rebuild_project {
   echo "${SEP}Building and running the full test\n"
   # cargo run && build_docs
-  # cargo test --package test_suite test_diff -- --nocapture \
-  cargo run -p diesel_updates \
+  cargo test --package test_suite test_replicant_full -- --nocapture \
   && build_docs
+  # cargo run -p diesel_updates \
   echo "\n"
 }
 
@@ -134,7 +135,7 @@ function init {
   get_docker_compose
   get_ripgrep
 
-  pg_init
+  # pg_init
 
   echo "${SEP}Doing an initial build attempt"
   cargo build
@@ -192,6 +193,7 @@ while true; do
     $INIT_DIR/watcher.sh \
     $INIT_DIR/Cargo.toml \
     $INIT_DIR/protean \
+    $INIT_DIR/replicant \
     $INIT_DIR/protean_derive \
     $INIT_DIR/protean_examples/diesel_updates \
     $INIT_DIR/test_suite \

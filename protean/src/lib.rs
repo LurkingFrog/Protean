@@ -30,7 +30,7 @@ macro_rules! patch {
     let mut patch = $a.new_patch();
     $(
       let (key, value) = $update;
-      patch.add(&key, serde_json::to_value(&value).unwrap());
+      patch.add(&key.to_string(), &serde_json::to_value(&value).unwrap());
     )*;
     patch
   }};
@@ -123,6 +123,8 @@ pub trait Patchwork<'a, SubClass = Self>: Debug + Clone + Serialize + Deserializ
 /// A container for managing a set of changes to a given implementation of Patchwork
 #[derive(Clone)]
 pub struct Patch {
+  // Do we need a guid, or does this go further up the food chain
+  // patch_id: uuid::Uuid(),
   /// The name of the struct that created the patch
   patch_type: String,
 
@@ -138,6 +140,7 @@ pub struct Patch {
   ///
   /// The key is the location of the value within the object encoded in dot notation.
   /// THINK: diff of HashMap where the key is not a primitive?
+  /// THINK: Considering just using serde_json and having the accessor be
   value_map: HashMap<String, serde_json::Value>,
 }
 
