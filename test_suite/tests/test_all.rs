@@ -20,7 +20,8 @@
 use std::sync::Once;
 static LOGGING: Once = Once::new();
 
-use protean::{patch, Patchwork, ProteanError};
+use protean::{patch, Patchwork};
+use replicant::register;
 
 /// Set up that should be run for each ea
 fn init_test() {
@@ -48,7 +49,8 @@ mod tools {
   use rand::distributions::Alphanumeric;
   use rand::Rng;
   use serde::{Deserialize, Serialize};
-  use std::collections::HashMap;
+
+  use replicant::{Registrar, ReplicantContainer};
 
   /// A struct with all the data types that Patchwork should know how to handle
   #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -109,6 +111,9 @@ mod tools {
     fn to_patch(&self) -> Result<Patch> {
       unimplemented!("'UnitTest Tester::to_patch' still needs to be implemented")
     }
+  }
+  impl<'a> ReplicantContainer<'a> for Tester {
+    type Item = Registrar;
   }
 
   /// A second struct to be nested inside the Tester
@@ -256,14 +261,15 @@ test!(
 
 test!(
   fn test_replicant_full() {
-    // Make sure caches stay in sync based on subscriptions
+    // Make sure stores stay in sync based on subscriptions
     use tools::*;
 
     // Make some random seed data
     let _tests: Vec<Tester> = [0..3].iter().map(|_| tools::Tester::random()).collect();
 
     test_replicant_register();
-
+    // test_replicant_subscribe();
+    // test_replicant_trigger();
     // Create some empty caches
     let _primary = replicant::Store::new();
 
@@ -284,15 +290,99 @@ test!(
 
 test!(
   fn test_replicant_register() {
+    // Options - Historic vs Patchwork?
     // Cannot add an Unkeyed item as a root
     // All Local keyed items create their own root
+    let mut primary = replicant::Store::new();
+
+    // Test the different methods of registering a Replicant
+    // Use the default options
+    // let result = register!(primary, tools::Tester);
+
+    // Use custom options
+    let opts = replicant::Registrar::new().unwrap();
+    // let result = register!(primary, tools::Tester, opts);
+
+    // Direct call
+    let result = primary.register::<tools::Tester>(opts);
+
+    log::debug!("result:\n{:#?}", result);
+
+    // Register Unkeyed
+    // Assert Error(UnkeyedReplicantError)
+    // let result = primary.register::<tools::Tester>(ReplicantType);
+
+    // Assert there is a root of Tester.
+    // Assert that there is a guid for Tester
+
+    // Assert there is a root for Nested
+    // Assert there is a guid in the map for Nested
+
+    // Make a dup Tester in a different module
+    // Register it
+    // Assert it has a root, different from the original
+
+    // Register Nested
+    // Assert nothing new happened
+  }
+);
+
+test!(
+  fn test_replicant_node() {
+    // Check items that we need to store about each field
+    // - Root Node Only
+    //   - Number of patches applied (versioning). Root node only?
+    //   - Historic instance for each root item?
+    // - All Nodes
+    //   - Vec<Subscriber_IDs>
+    //   -
+  }
+);
+
+test!(
+  fn test_replicant_crud() {
+    // CRUD for the store data, testing the resulting patches
+    // THINK: Am I recreating a relational database wheel?
+    // THINK: How to separate the data from the rules?
+    // THINK: Delete vs. Retire
+    // - Does caching
+    // THINK: Can we separate data from subscriptions to store in memcached/redis?
+    // -
+    // THINK: Link counter like Rc?
+    // - +1 on direct insert (this way it exists after all references are deleted)
+    // - +1 each parent using
+    // - Always cascade retire calls: -1 retire parent
+
+    // Insert new Tested
+    // Assert one tester node, one nested node
+    // Insert Same tested - Error
+
+    // Update previously inserted error
+
+    // Retire value
+    // How does this cascade?
+
+    // Retire value (cache expire)
   }
 );
 
 test!(
   fn test_replicant_subscribe() {
+    // THINK:
+    // See data move between caches
     // Replicant to graphql format?
     // List subscribers
+    // Tag watcher
+
+    // FUTURE ITEMS
+    // Update subscription
+  }
+);
+
+test!(
+  fn test_replicant_transform() {
+    // THINK: How/Can we synchronize between different shapes of data?
+    // - This is the core of choreography - take a sync event and convert it to an action/callback
   }
 );
 
@@ -305,6 +395,6 @@ test!(
 
 test!(
   fn test_replicant_ack() {
-    // Test all subcribers return and ack that it received a patch or an error
+    // Test all subcribers return and ack that they all applied a patch or an error
   }
 );

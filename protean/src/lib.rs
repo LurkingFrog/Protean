@@ -30,7 +30,7 @@ macro_rules! patch {
     let mut patch = $a.new_patch();
     $(
       let (key, value) = $update;
-      patch.add(&key.to_string(), &serde_json::to_value(&value).unwrap());
+      patch.add(&key.to_string(), &serde_json::to_value(&value).unwrap()).unwrap();
     )*;
     patch
   }};

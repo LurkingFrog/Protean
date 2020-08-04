@@ -22,6 +22,9 @@ pub enum ReplicantError {
   #[error("There is no Replicant root with the given name")]
   UnknownReplicantRoot,
 
+  #[error("All store roots require either local or global keys")]
+  UnkeyedReplicantError,
+
   #[error("The data did not fit the constraints")]
   ValidationError,
 }

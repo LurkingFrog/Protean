@@ -1,7 +1,7 @@
 #! /usr/bin/env zsh
 
 
-export RUST_BACKTRACE=0;
+export RUST_BACKTRACE=1;
 export RUST_LOG=debug,test=debug;
 # export RUSTFLAGS="-Z macro-backtrace -Z debug-macros"
 

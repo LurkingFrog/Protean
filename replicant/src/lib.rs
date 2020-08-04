@@ -21,11 +21,19 @@
 //! - Add a patchwork on_change_match: call function if it receives a change
 
 use anyhow::{Context, Result};
-use protean::{Patch, Patchwork};
+use protean::Patchwork;
 use serde::{Deserialize, Serialize};
-use std::boxed::Box;
 use std::collections::{HashMap, HashSet};
-use std::rc::Rc;
+
+pub mod error;
+pub use error::ReplicantError;
+
+#[macro_export]
+macro_rules! register {
+  () => {
+    unimplemented!("'replicant::register!' still needs to be implemented")
+  };
+}
 
 /// A struct that can be decomposed into a serialized cache
 ///
@@ -38,7 +46,11 @@ pub trait Replicant<'a>: Patchwork<'a> {
   /// Get a guid for this type. This should be generated repeatable hash, no matter which system it is
   /// compiled on, it should generate the same key.
   fn get_type_id() -> uuid::Uuid {
-    unimplemented!("'Replicatnt::get_type_id' still needs to be implemented")
+    // MD5 hash of
+    // env!("CARGO_PKG_NAME");
+    // env!("CARGO_PKG_VERSION");
+    // get_type_name
+    unimplemented!("Generic 'Replicant::get_type_id' still needs to be implemented")
   }
 
   /// Define whether the object implements
@@ -46,9 +58,103 @@ pub trait Replicant<'a>: Patchwork<'a> {
     KeyType::Unkeyed
   }
 
-  fn get_key() -> Result<uuid::Uuid>;
+  fn get_key() -> Result<uuid::Uuid> {
+    unimplemented!("Generic 'Replicant::get_key' still needs to be implemented")
+  }
+
+  /// Get a pretty name for the replicant type.
+  ///
+  /// THINK: Should the name include the version number from the source code if available?
+  /// This can be hardcoded in the derive macro
+
+  fn get_type_name(&self) -> String {
+    unimplemented!("Generic 'Replicant::get_type_name' still needs to be implemented")
+  }
   // fn upsert(&mut self, cache_root: &str, patch: Patch) -> Result<()>;
 }
+
+// Placeholder magic for registering Replicants using their static methods
+// THINK: Understand https://stackoverflow.com/questions/40252935/how-to-provide-type-only-argument-to-a-function
+//  TODO: Clean this and convert it to a macro tied to Replicant
+
+/// A placeholder trait used to register an struct that implements Replicant with a store
+pub trait ReplicantContainer<'a> {
+  type Item: Replicant<'a>;
+}
+
+/// The options for setting up the cache for the given replicant
+#[derive(
+  Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default, Serialize, Deserialize,
+)]
+pub struct Registrar {}
+impl<'a> Patchwork<'a> for Registrar {
+  fn diff(&self, _: &Registrar) -> Result<protean::Patch> {
+    unreachable!("'ReplicantRegistrar::diff' is never used")
+  }
+}
+impl<'a> Replicant<'a> for Registrar {}
+impl Registrar {
+  pub fn new() -> Result<Registrar> {
+    Ok(Default::default())
+  }
+}
+
+/// This is where we store all the local data.
+///
+/// THINK: How to add historic to this
+/// THINK: Add Arc<Mutex>?
+
+#[derive(Debug, Default)]
+pub struct Store {
+  /// The data store.
+  /// HACK: This should likely be converted a trait so we can use memcached as a backend if desired
+  cache: HashMap<uuid::Uuid, serde_json::Value>,
+
+  ///
+  root_map: HashMap<String, uuid::Uuid>,
+}
+
+impl std::fmt::Display for Store {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(f, "{:#?}", self.root_map.keys())
+  }
+}
+
+impl Store {
+  pub fn new() -> Store {
+    Default::default()
+  }
+
+  pub fn register<'a, C: ReplicantContainer<'a>>(&mut self, item: C::Item) -> Result<&Store> {
+    log::debug!("Registering an item to the store: {:#?}", item);
+
+    match C::Item::key_type() {
+      KeyType::Unkeyed => Err(ReplicantError::UnkeyedReplicantError).context(format!(
+        "Could not register unkeyed replicant {:#?}",
+        item.get_type_name()
+      ))?,
+      KeyType::Local => Ok(self),
+      KeyType::Global => Ok(self),
+    }
+  }
+}
+
+// /// A mapping of where/how to send all the patches
+// pub struct Subscriptions {
+//   subscribers: HashMap<String, Rc<dyn Subscriber>>,
+// }
+
+// impl std::fmt::Display for Subscriptions {
+//   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//     write!(f, "Subscribers {:#?}", self.subscribers.keys())
+//   }
+// }
+
+// impl Subscriptions {
+//   fn subscribe(&self, name: String, subscriber: Rc<dyn Subscriber>) -> Result<()> {
+//     unimplemented!("'Subscriptions::subscribe' still needs to be implemented")
+//   }
+// }
 
 /// Define if the replicant can be identified by a key
 ///
@@ -81,50 +187,6 @@ impl Default for KeyType {
     KeyType::Unkeyed
   }
 }
-
-/// This is where we store all the local data.
-///
-/// THINK: How to add historic to this
-#[derive(Debug, Default)]
-pub struct Store {
-  cache: HashMap<uuid::Uuid, serde_json::Value>,
-
-  /// How to
-  root_map: HashMap<String, uuid::Uuid>,
-}
-
-impl std::fmt::Display for Store {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "{:#?}", self.root_map.keys())
-  }
-}
-
-impl Store {
-  pub fn new() -> Store {
-    Default::default()
-  }
-
-  pub fn register(&mut self) -> Result<&Store> {
-    Ok(self)
-  }
-}
-
-// /// A mapping of where/how to send all the patches
-// pub struct Subscriptions {
-//   subscribers: HashMap<String, Rc<dyn Subscriber>>,
-// }
-
-// impl std::fmt::Display for Subscriptions {
-//   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//     write!(f, "Subscribers {:#?}", self.subscribers.keys())
-//   }
-// }
-
-// impl Subscriptions {
-//   fn subscribe(&self, name: String, subscriber: Rc<dyn Subscriber>) -> Result<()> {
-//     unimplemented!("'Subscriptions::subscribe' still needs to be implemented")
-//   }
-// }
 
 /// Standard mess of boolean algebra for filtering
 #[derive(Clone, Eq, PartialEq, Debug, Serialize, Deserialize)]
