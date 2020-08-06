@@ -3,6 +3,6 @@ members = [
   "protean",
   "protean_derive",
   # "protean_examples/diesel_updates",
-  "replicant",
+  "tyrell",
   "test_suite"
 ]

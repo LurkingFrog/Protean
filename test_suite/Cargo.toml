@@ -9,7 +9,7 @@ build = "build.rs"
 
 [dependencies]
 protean = { path = "../protean" }
-replicant = { path = "../replicant" }
+tyrell = { path = "../tyrell" }
 
 # General logging
 log = "0.4.11"

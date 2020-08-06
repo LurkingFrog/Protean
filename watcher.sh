@@ -1,6 +1,7 @@
 #! /usr/bin/env zsh
 
 
+export CLICOLOR_FORCE=1
 export RUST_BACKTRACE=1;
 export RUST_LOG=debug,test=debug;
 # export RUSTFLAGS="-Z macro-backtrace -Z debug-macros"
@@ -114,10 +115,13 @@ function rebuild_project {
   echo "${SEP}Building and running the full test\n"
   # cargo run && build_docs
   cargo test --package test_suite test_replicant_full -- --nocapture \
+     2> >(sed '/ \(\(backtrace::\)\|\(core::\)\|\(<\?std::\)\|\(rust_begin_unwind\)\)/, +1d') \
   && build_docs
   # cargo run -p diesel_updates \
   echo "\n"
 }
+
+
 
 
 function pg_init {
@@ -193,7 +197,7 @@ while true; do
     $INIT_DIR/watcher.sh \
     $INIT_DIR/Cargo.toml \
     $INIT_DIR/protean \
-    $INIT_DIR/replicant \
+    $INIT_DIR/tyrell \
     $INIT_DIR/protean_derive \
     $INIT_DIR/protean_examples/diesel_updates \
     $INIT_DIR/test_suite \

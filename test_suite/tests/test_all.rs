@@ -21,7 +21,7 @@ use std::sync::Once;
 static LOGGING: Once = Once::new();
 
 use protean::{patch, Patchwork};
-use replicant::register;
+use tyrell::register;
 
 /// Set up that should be run for each ea
 fn init_test() {
@@ -50,7 +50,7 @@ mod tools {
   use rand::Rng;
   use serde::{Deserialize, Serialize};
 
-  use replicant::{Registrar, ReplicantContainer};
+  use tyrell::{Registrable, Registrar, Replicant};
 
   /// A struct with all the data types that Patchwork should know how to handle
   #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -112,8 +112,20 @@ mod tools {
       unimplemented!("'UnitTest Tester::to_patch' still needs to be implemented")
     }
   }
-  impl<'a> ReplicantContainer<'a> for Tester {
+
+  /// Magic for registering the Tester as a replicant
+  impl<'a> Registrable<'a> for Tester {
     type Item = Registrar;
+  }
+
+  impl<'a> Replicant<'a> for Tester {
+    fn get_model_name() -> String {
+      "Tester".to_string()
+    }
+
+    fn get_key(&self) -> Result<uuid::Uuid> {
+      unimplemented!("'Replicant::Tester::get_key' still needs to be implemented")
+    }
   }
 
   /// A second struct to be nested inside the Tester
@@ -267,11 +279,14 @@ test!(
     // Make some random seed data
     let _tests: Vec<Tester> = [0..3].iter().map(|_| tools::Tester::random()).collect();
 
+    // These calls will be deleted to be left as stand-alone when they actually work
     test_replicant_register();
+    // test_replicant_crud();
     // test_replicant_subscribe();
     // test_replicant_trigger();
+
     // Create some empty caches
-    let _primary = replicant::Store::new();
+    let _primary = tyrell::Store::new();
 
     // Register Nested
     // Create a new root in
@@ -293,26 +308,22 @@ test!(
     // Options - Historic vs Patchwork?
     // Cannot add an Unkeyed item as a root
     // All Local keyed items create their own root
-    let mut primary = replicant::Store::new();
+    let mut primary = tyrell::Store::new();
 
     // Test the different methods of registering a Replicant
     // Use the default options
     // let result = register!(primary, tools::Tester);
 
-    // Use custom options
-    let opts = replicant::Registrar::new().unwrap();
-    // let result = register!(primary, tools::Tester, opts);
-
     // Direct call
-    let result = primary.register::<tools::Tester>(opts);
-
+    let opts = tyrell::Registrar::new().unwrap();
+    let result = primary.register::<tools::Tester>(opts).unwrap();
     log::debug!("result:\n{:#?}", result);
 
     // Register Unkeyed
     // Assert Error(UnkeyedReplicantError)
     // let result = primary.register::<tools::Tester>(ReplicantType);
 
-    // Assert there is a root of Tester.
+    // Assert there is a root node for Tester.
     // Assert that there is a guid for Tester
 
     // Assert there is a root for Nested
@@ -324,6 +335,8 @@ test!(
 
     // Register Nested
     // Assert nothing new happened
+
+    // TODO: Use custom options as the features get discovered
   }
 );
 
@@ -373,6 +386,7 @@ test!(
     // Replicant to graphql format?
     // List subscribers
     // Tag watcher
+    // Generic object build via graph_ql and types pulled from introspection
 
     // FUTURE ITEMS
     // Update subscription
@@ -382,12 +396,15 @@ test!(
 test!(
   fn test_replicant_transform() {
     // THINK: How/Can we synchronize between different shapes of data?
-    // - This is the core of choreography - take a sync event and convert it to an action/callback
+    // - This is the core of choreography - take a sync event and store it locally as an action with a
+    //   callback. This aspect of it is the primary method of actions occurring within The Process Foundry
+    // - Simple examples in the test, and a more complex demo later
   }
 );
 
 test!(
   fn test_replicant_trigger() {
+    // THINK: I believe this is how workflows will set watches: set the subscription and add a trigger on it
     // Test patch update triggering sends to all subscribers
     // Test patch update triggers all matching callbacks
   }
