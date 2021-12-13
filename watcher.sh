@@ -115,13 +115,12 @@ function rebuild_project {
   echo "${SEP}Building and running the full test\n"
   # cargo run && build_docs
   cargo test --package test_suite test_replicant_full -- --nocapture \
-     2> >(sed '/ \(\(backtrace::\)\|\(core::\)\|\(<\?std::\)\|\(rust_begin_unwind\)\)/, +1d') \
+  2> >(sed '/ \(\(backtrace::\)\|\(core::\)\|\(<\?std::\)\|\(rust_begin_unwind\)\)/, +1d') \
   && build_docs
   # cargo run -p diesel_updates \
+#
   echo "\n"
 }
-
-
 
 
 function pg_init {
@@ -187,7 +186,6 @@ cd $WORKDIR
 init
 space=" "
 modify="${space}MODIFY${space}"
-
 # And run it the first time before the loop so we don't have to wait for the update
 rebuild_project
 

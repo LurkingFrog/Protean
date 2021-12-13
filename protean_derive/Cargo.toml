@@ -14,17 +14,17 @@ proc-macro = true
 
 [dependencies]
 # General logging
-log = "0.4.11"
-env_logger = "0.7.1"
+log = "0.4.14"
+env_logger = "0.9.0"
 
 # Error creation
-anyhow = "1.0.32"
-thiserror = "1.0.20"
+anyhow = "1.0.51"
+thiserror = "1.0.30"
 
-proc-macro2 = "1.0.19"
-syn = { version = "1.0.36", features = ["extra-traits"] }
-quote = "1.0.7"
+proc-macro2 = "1.0.33"
+syn = { version = "1.0.82", features = ["extra-traits"] }
+quote = "1.0.10"
 
 
 [dev-dependencies]
-syn = { version = "1.0.36", features = ["extra-traits"] }
+syn = { version = "1.0.82", features = ["extra-traits"] }
