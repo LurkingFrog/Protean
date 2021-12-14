@@ -13,7 +13,7 @@ pub struct Patch<'a> {
   options: Option<PatchOptions>,
 
   /// The actual operations done to transform the state into the desired result
-  actions: HashSet<PatchAction<'a>>,
+  actions: HashMap<String, PatchAction<'a>>,
 }
 
 impl<'a> Patch<'a> {
@@ -21,7 +21,7 @@ impl<'a> Patch<'a> {
     Patch {
       version: None,
       options: Some(PatchOptions::default()),
-      actions: HashSet::new(),
+      actions: HashMap::new(),
     }
   }
 
@@ -38,10 +38,25 @@ impl<'a> Patch<'a> {
     expected: Option<T>,
   ) -> Result<(), ProteanError>
   where
-    T: Patchworthy<'a>,
+    T: Patchworthy<'a> + 'a,
   {
-    // if let Some(val) = self.actions.insert()
-    todo!("Add to an existing patch")
+    let entry = self.actions.entry(field.get_field_name());
+    println!("The Entry is: {:?}", entry);
+    match &entry {
+      Entry::Vacant(_) => {
+        let act = PatchAction::new(
+          action,
+          field,
+          expected.map(|x| Box::new(x) as Box<dyn Patchworthy<'a> + 'a>),
+        );
+        entry.or_insert(act);
+      }
+      Entry::Occupied(_) => return Err(ProteanError::DuplicateKey),
+      // "The item already exists in the table: {}",
+      // item
+      // ))
+    }
+    Ok(())
   }
 }
 
@@ -60,12 +75,26 @@ pub struct PatchAction<'a> {
   value: PatchValue<'a>,
 
   /// The expected value of the item before the patch is applied
-  expected: Option<Box<dyn Patchworthy<'a>>>,
+  expected: Option<Box<dyn Patchworthy<'a> + 'a>>,
+}
+
+impl<'a> PatchAction<'a> {
+  pub fn new(
+    action: Action,
+    value: impl Patchworthy<'a> + 'a,
+    expected: Option<Box<dyn Patchworthy<'a> + 'a>>,
+  ) -> PatchAction<'a> {
+    PatchAction {
+      action,
+      value: PatchValue::Value(Box::new(value)),
+      expected,
+    }
+  }
 }
 
 #[derive(Debug)]
 pub enum PatchValue<'a> {
-  Value(Box<dyn Patchworthy<'a>>),
+  Value(Box<dyn Patchworthy<'a> + 'a>),
   Patch(Patch<'a>),
 }
 

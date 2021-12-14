@@ -31,7 +31,7 @@ mod local {
 
   pub use std::{
     borrow::Cow,
-    collections::{HashMap, HashSet},
+    collections::{hash_map::Entry, HashMap, HashSet},
     fmt::{Debug, Display},
     hash::Hash,
   };

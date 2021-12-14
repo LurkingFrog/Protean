@@ -76,7 +76,7 @@ pub trait Patchwork<'a>: Clone + Sized {
 pub trait Patchworthy<'a>: Send + Sync + Debug + Display {
   /// Get the and id number correcsonding to the given field.
   /// Since a patchworthy object cannot directly require hash, we make sure that the user implements
-  fn get_type_id(&self) -> u64;
+  fn get_field_name(&self) -> String;
 
   /// Export the wrapped value as a Create PatchAction
   ///

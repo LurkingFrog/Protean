@@ -13,4 +13,7 @@ pub enum ProteanError {
 
   #[error("The patch did not set a key")]
   NoKeySet,
+
+  #[error("Tried to add the second of the same key to a set")]
+  DuplicateKey,
 }
