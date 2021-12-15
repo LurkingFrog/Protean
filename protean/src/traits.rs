@@ -3,17 +3,24 @@
 use super::local::*;
 
 /// The core trait,
-pub trait Patchwork<'a>: Clone + Sized {
+pub trait Patchwork<'a>: Clone + Sized + Serialize + Deserialize<'a> {
   /// An enumeration of each field and a wrapper for the value
   ///
   /// This makes it generic without having to serialize to generate a patch
   /// THINK: How does this work for enums?
-  type Field: Patchworthy<'a>;
+  type Field: Patchworthy<'a> + Serialize;
 
   /// Get an Id for the given object, if one is defined
   fn get_id() -> Option<String> {
     None
   }
+
+  fn get_name() -> String {
+    std::any::type_name::<Self>().to_string()
+  }
+
+  /// Get the field value wrapped in the patchworthy enum
+  fn get_field(&'a self, name: &str) -> Result<Self::Field, ProteanError>;
 
   /// Gets the version of the object.
   ///
@@ -29,15 +36,11 @@ pub trait Patchwork<'a>: Clone + Sized {
 
   /// Create an empty patch
   fn new_patch() -> Patch<'a> {
-    Patch::new()
+    Patch::new(Self::get_name())
   }
 
   /// Apply a given patch
-  fn apply(
-    &mut self,
-    patch: Patch,
-    options: Option<PatchOptions>,
-  ) -> Result<Patch<'a>, ProteanError> {
+  fn apply(&mut self, _patch: Patch) -> Result<Patch<'a>, ProteanError> {
     todo!(
       "Default Apply for {} is not yet written",
       std::any::type_name::<Self>()
@@ -49,7 +52,7 @@ pub trait Patchwork<'a>: Clone + Sized {
   /// This is the same way that most databases will backup their data as a set of inserts instead of
   /// making a custom format.
   fn as_patch(&'a self) -> Patch<'a> {
-    let mut patch = Patch::new();
+    let mut patch = Patch::new(Self::get_name());
     for field in self.values() {
       patch.add(Action::Set, field, None).unwrap();
     }
@@ -87,6 +90,12 @@ pub trait Patchworthy<'a>: Send + Sync + Debug + Display {
       std::any::type_name::<Self>()
     )
   }
+
+  /// Keep the ability to serialize without requiring it as part of the stored trait
+  ///
+  /// This is custom, as the enumeration wrapping the inner value needs to be dropped. Using Serde's
+  /// JSON value removes a conversion step
+  fn as_json(&self) -> Result<serde_json::Value, ProteanError>;
 }
 
 // A customizable set of actions that can be performed on a field.

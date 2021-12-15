@@ -38,6 +38,30 @@ until I can whittle down/separate things.
 
 ### Example
 
+- Patch - T is the base object (Db)
+  - Name - default is the value of T
+  - Version
+  - Options
+  - Actions - Map for each field
+    - Capitalized field name - Key
+    - Value
+      - Either a single action:
+        - ["Set": {"Value": ... }]
+        - ["Update": {"Patch": Patch<U>}]
+      - Or multiple steps (This is premature, but it seems optimizeable)
+        - [
+          ["List.Swap": [[0,1], [3,8]],
+          ["List.Append": {"New Value"}]
+          ]
+        - [
+          ["Map.Insert": [
+          ["Key1"]
+          ],
+          ["Map.Delete": "Key2],
+          ["Map.Update": ["Key3", {"Patch"}]]
+          ]
+          ]
+
 ```json
 {
   // Simple name
@@ -57,20 +81,12 @@ until I can whittle down/separate things.
         "version": {},
         // Map actions
         "actions": [
-          "Delete": "key",
-          "Update": [
-            "name": "New Name Here",
-            "address": {
-              "version": {},
-              "actions": [
-                "Update": [
-                  "line2": "Suite 2123"
-                ]
-              ]
-            }
-          ]
+          ["Set": {"Value": {"<HashMap of orgs>"}}]
         ]
       },
+      /// A leaf can use an abbreviated singe action, if desired
+      "addr_map": ["Set", {"<HashMap of Addresses>"}, "<ExpectHash>"],
+
     }]
   }
 }

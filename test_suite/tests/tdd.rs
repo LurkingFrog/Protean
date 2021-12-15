@@ -15,6 +15,9 @@ test_fn!(
     let patch: Patch = db.as_patch();
 
     println!("{:#?}", patch);
+
+    let serialized = serde_json::to_value(&patch).unwrap();
+    println!("{}", serialized);
   }
 );
 

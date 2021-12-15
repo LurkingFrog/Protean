@@ -35,6 +35,8 @@ mod local {
     fmt::{Debug, Display},
     hash::Hash,
   };
+
+  pub use serde::{Deserialize, Serialize};
 }
 
 pub mod prelude {
