@@ -75,7 +75,7 @@ until I can whittle down/separate things.
       "GitHash": "The latest commit hash of the current branch"
     },
 
-    // Object Actions
+    // Object Actions. Context sensitive?
     "actions": [{
       "org_map": {
         "version": {},

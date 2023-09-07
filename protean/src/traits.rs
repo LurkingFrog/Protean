@@ -4,11 +4,14 @@ use super::local::*;
 
 /// The core trait,
 pub trait Patchwork<'a>: Clone + Sized + Serialize + Deserialize<'a> {
+  /// A getter/setter key, how to target a portion of the current object for patching
+  type Accessor;
+
   /// An enumeration of each field and a wrapper for the value
   ///
   /// This makes it generic without having to serialize to generate a patch
   /// THINK: How does this work for enums?
-  type Field: Patchworthy<'a> + Serialize;
+  type Element: Patchworthy<'a> + Serialize;
 
   /// Get an Id for the given object, if one is defined
   fn get_id() -> Option<String> {
@@ -20,7 +23,7 @@ pub trait Patchwork<'a>: Clone + Sized + Serialize + Deserialize<'a> {
   }
 
   /// Get the field value wrapped in the patchworthy enum
-  fn get_field(&'a self, name: &str) -> Result<Self::Field, ProteanError>;
+  fn get_field(&'a self, name: Self::Accessor) -> Result<Self::Element, ProteanError>;
 
   /// Gets the version of the object.
   ///
